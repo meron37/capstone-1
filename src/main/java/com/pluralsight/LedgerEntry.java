@@ -58,7 +58,7 @@ public class LedgerEntry {
         this.amount = amount;
     }
 
-    // toString() for display
+    // toString()
     @Override
     public String toString() {
         return String.format("%s | %s | %-20s | %-15s | %10.2f",
