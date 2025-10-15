@@ -57,4 +57,11 @@ public class LedgerEntry {
     public void setType(String type) {
         this.type = type;
     }
+
+    // toString() for display
+    @Override
+    public String toString() {
+        return String.format("%s | %-15s | %-15s | %10.2f | %s",
+                date, description, vendor, amount, type);
+    }
 }
