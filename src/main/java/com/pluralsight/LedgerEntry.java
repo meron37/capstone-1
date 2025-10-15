@@ -2,23 +2,27 @@ package com.pluralsight;
 
 public class LedgerEntry {
     private String date;
+    private String time;
     private String description;
     private String vendor;
     private double amount;
-    private String type; // "deposit" or "debit"
 
     // Constructor
-    public LedgerEntry(String date, String description, String vendor, double amount, String type) {
+    public LedgerEntry(String date, String time, String description, String vendor, double amount) {
         this.date = date;
+        this.time = time;
         this.description = description;
         this.vendor = vendor;
         this.amount = amount;
-        this.type = type;
     }
 
     // Getters
     public String getDate() {
         return date;
+    }
+
+    public String getTime() {
+        return time;
     }
 
     public String getDescription() {
@@ -33,13 +37,13 @@ public class LedgerEntry {
         return amount;
     }
 
-    public String getType() {
-        return type;
-    }
-
     // Setters
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public void setDescription(String description) {
@@ -54,14 +58,10 @@ public class LedgerEntry {
         this.amount = amount;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
     // toString() for display
     @Override
     public String toString() {
-        return String.format("%s | %-15s | %-15s | %10.2f | %s",
-                date, description, vendor, amount, type);
+        return String.format("%s | %s | %-20s | %-15s | %10.2f",
+                date, time, description, vendor, amount);
     }
 }
