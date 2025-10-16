@@ -106,6 +106,22 @@ public class Main {
         List<Transactions> entries = new ArrayList<>();
         File file = new File(FILE_PATH);
         if (!file.exists()) return entries;
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length == 5) {
+                    Transactions entry = new Transactions(
+                            parts[0], parts[1], parts[2], parts[3], Double.parseDouble(parts[4])
+                    );
+                    entries.add(entry);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
 
+        return entries;
+    }
     }
 }
