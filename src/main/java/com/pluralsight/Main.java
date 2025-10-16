@@ -102,6 +102,10 @@ public class Main {
             System.out.println("Error writing to file: " + e.getMessage());
         }
     }
+    private static List<Transactions> readEntries() {
+        List<Transactions> entries = new ArrayList<>();
+        File file = new File(FILE_PATH);
+        if (!file.exists()) return entries;
 
-
+    }
 }
