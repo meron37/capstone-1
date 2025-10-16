@@ -49,6 +49,7 @@ Date: 10/17/2025
 # Interesting Code
 This code implements a login system that gives the user 3 attempts to enter the correct username and password. If authentication fails after 3 tries, access is denied and the program exits.
 
+```java
 
 final int MAX_ATTEMPTS = 3;
 int attempts = 0;
@@ -73,4 +74,4 @@ String username = scanner.nextLine().trim();
     }
 }
 
-
+```
