@@ -35,15 +35,15 @@ Date: 10/17/2025
 2. Run the `Main.java` file
 3. Login with valid credentials
 
-![img_1.png](target/img_1.png)
+![img_1.png](images/img_1.png)
 
 4. Follow on-screen prompts to:
     - Add deposits/payments
     - View ledger
-   ![img_2.png](target/img_2.png)
+   ![img_2.png](images/img_2.png)
    
     - Search or generate reports
-   ![img_3.png](target/img_3.png)
+   ![img_3.png](images/img_3.png)
 5. Exit to save changes to `transactions.csv`
 
 # Interesting Code
