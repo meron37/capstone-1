@@ -38,7 +38,7 @@ public class Transactions {
         return amount;
     }
 
-    // Display format
+    // Display transaction format
     @Override
     public String toString() {
         return String.format("%s | %s | %-20s | %-15s | %10.2f",
