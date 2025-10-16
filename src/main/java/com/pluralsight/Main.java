@@ -54,5 +54,35 @@ public class Main {
         System.out.println("X) Exit");
         System.out.print("Enter your choice: ");
     }
+    // ====== ADD DEPOSIT METHOD ======
+
+     // Handles deposit input from the user and saves it to the CSV file.
+
+    private static void addDeposit() {
+        System.out.println("\n--- Add Deposit ---");
+
+        // Prompt user for transaction details
+        System.out.print("Enter description: ");
+        String description = scanner.nextLine();
+
+        System.out.print("Enter vendor: ");
+        String vendor = scanner.nextLine();
+
+        System.out.print("Enter amount: ");
+        double amount = Double.parseDouble(scanner.nextLine());
+
+        // Get today's date and current time
+        String date = LocalDate.now().toString();
+        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+        // Create a new transaction with the entered details
+        Transactions entry = new Transactions(date, time, description, vendor, amount);
+
+        // Save the transaction to the CSV file
+        writeEntry(entry);
+
+        System.out.println("Deposit saved successfully!");
+    }
+
 
 }
