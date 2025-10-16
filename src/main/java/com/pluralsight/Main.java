@@ -1,6 +1,6 @@
 package com.pluralsight;
 
-import java.io.*;
+import java.io.*; // read and write
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -15,6 +15,9 @@ public class Main {
 
     public static void main(String[] args) {
         scanner = new Scanner(System.in); //  Initialize Scanner
+
+
+
         String choice; // variable declaration
 
         // Main application loop it's executes the selected option (Deposit, Payment, Ledger, or Exit)
@@ -47,7 +50,7 @@ public class Main {
         scanner.close(); // Close once at the end
     }
 
-    // ======== HOME MENU ========
+    // === HOME MENU ====
     private static void printHomeScreen() {
         System.out.println("\n=== Ledger Application ===");
         System.out.println("D) Add Deposit");
@@ -115,23 +118,23 @@ public class Main {
 
             switch (choice) {
                 case "1": // Month to Date
-                    LocalDate startOfMonth = today.withDayOfMonth(1);
+                    LocalDate startOfMonth = today.withDayOfMonth(1); // 1 refers to the first day of the current month
                     System.out.println("Results from " + startOfMonth + " to " + today);
                     for (Transactions entry : entries) {
-                        LocalDate txDate = LocalDate.parse(entry.getDate());
-                        if (!txDate.isBefore(startOfMonth) && !txDate.isAfter(today)) {
+                        LocalDate transactionDate = LocalDate.parse(entry.getDate());
+                        if (!transactionDate.isBefore(startOfMonth) && !transactionDate.isAfter(today)) { //
                             System.out.println(entry);
                         }
                     }
                     break;
 
                 case "2": // Previous Month
-                    LocalDate firstDayPrevMonth = today.minusMonths(1).withDayOfMonth(1);
+                    LocalDate firstDayPrevMonth = today.minusMonths(1).withDayOfMonth(1); // minuMonth - goes back one month
                     LocalDate lastDayPrevMonth = firstDayPrevMonth.withDayOfMonth(firstDayPrevMonth.lengthOfMonth());
                     System.out.println("Results from " + firstDayPrevMonth + " to " + lastDayPrevMonth);
                     for (Transactions entry : entries) {
-                        LocalDate txDate = LocalDate.parse(entry.getDate());
-                        if (!txDate.isBefore(firstDayPrevMonth) && !txDate.isAfter(lastDayPrevMonth)) {
+                        LocalDate transactionDate = LocalDate.parse(entry.getDate());
+                        if (!transactionDate.isBefore(firstDayPrevMonth) && !transactionDate.isAfter(lastDayPrevMonth)) {
                             System.out.println(entry);
                         }
                     }
@@ -141,8 +144,8 @@ public class Main {
                     LocalDate startOfYear = today.withDayOfYear(1);
                     System.out.println("Results from " + startOfYear + " to " + today);
                     for (Transactions entry : entries) {
-                        LocalDate txDate = LocalDate.parse(entry.getDate());
-                        if (!txDate.isBefore(startOfYear) && !txDate.isAfter(today)) {
+                        LocalDate transactionDate = LocalDate.parse(entry.getDate());
+                        if (!transactionDate.isBefore(startOfYear) && !transactionDate.isAfter(today)) {
                             System.out.println(entry);
                         }
                     }
@@ -153,8 +156,8 @@ public class Main {
                     LocalDate prevYearEnd = LocalDate.of(today.getYear() - 1, 12, 31);
                     System.out.println("Results from " + prevYearStart + " to " + prevYearEnd);
                     for (Transactions entry : entries) {
-                        LocalDate txDate = LocalDate.parse(entry.getDate());
-                        if (!txDate.isBefore(prevYearStart) && !txDate.isAfter(prevYearEnd)) {
+                        LocalDate transactionDate = LocalDate.parse(entry.getDate());
+                        if (!transactionDate.isBefore(prevYearStart) && !transactionDate.isAfter(prevYearEnd)) {
                             System.out.println(entry);
                         }
                     }
@@ -216,8 +219,17 @@ public class Main {
         System.out.print("Enter vendor: ");
         String vendor = scanner.nextLine();
 
-        System.out.print("Enter amount: ");
-        double amount = Double.parseDouble(scanner.nextLine());
+        double amount = 0;
+        boolean gotNumber = false;
+        do {
+            try {
+                System.out.print("Enter amount: ");
+                 amount = Double.parseDouble(scanner.nextLine());
+                gotNumber= true;
+            } catch (NumberFormatException e) {
+                System.out.println("Input Error: Invalid number for amount.");
+            }
+        } while(!gotNumber);
 
         if (isPayment) amount = -Math.abs(amount); // Make sure payments are negative
 
@@ -231,12 +243,12 @@ public class Main {
     // Saves a transaction entry to the transactions.csv file.
     private static void writeEntry(Transactions entry) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write(String.join("|",
+            writer.write(String.join("|", // Combines multiple pieces of text into one line, separated by "|"
                     entry.getDate(),
                     entry.getTime(),
                     entry.getDescription(),
                     entry.getVendor(),
-                    String.valueOf(entry.getAmount())
+                    String.valueOf(entry.getAmount()) // Converts any number (int, double) into a String
             ));
             writer.newLine();
         } catch (IOException e) {
@@ -244,6 +256,9 @@ public class Main {
         }
     }
 
+    /* reading from the file, creating a Transactions object (entry), and then adding each entry to an ArrayList
+     so we can later display or filter
+           */
     private static List<Transactions> readEntries() {
         List<Transactions> entries = new ArrayList<>();
         File file = new File(FILE_PATH);
@@ -252,12 +267,12 @@ public class Main {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("\\|");
+                String[] parts = line.split("\\|"); // \\ escape character - becasue java needs "\" to be writeen as \\
                 if (parts.length == 5) {
                     Transactions entry = new Transactions(
                             parts[0], parts[1], parts[2], parts[3], Double.parseDouble(parts[4])
                     );
-                    entries.add(entry);
+                    entries.add(entry); // Adds transaction object to the list
                 }
             }
         } catch (IOException e) {
@@ -267,25 +282,27 @@ public class Main {
         return entries;
     }
 
-    // ======== DISPLAY HELPERS ========
+    // Displays all transactions from the CSV file in reverse // like stack last in fist out
     private static void showAllEntries() {
-        List<Transactions> entries = readEntries();
-        Collections.reverse(entries);
+        List<Transactions> entries = readEntries(); // calling redEntries method all transactions are stored in Arraylist "entries"
+        Collections.reverse(entries); // the newest transactions come first
         for (Transactions entry : entries) {
             System.out.println(entry);
         }
     }
 
+    // Displays only deposit (positive amount) transactions from the file
     private static void showDeposits() {
         List<Transactions> entries = readEntries();
         Collections.reverse(entries);
-        for (Transactions entry : entries) {
+        for (Transactions entry : entries) { // : mean "in"  // For each entry in entries
             if (entry.getAmount() > 0) {
                 System.out.println(entry);
             }
         }
     }
 
+    // // Displays only payment (negative amount) transactions from the CSV file
     private static void showPayments() {
         List<Transactions> entries = readEntries();
         Collections.reverse(entries);
