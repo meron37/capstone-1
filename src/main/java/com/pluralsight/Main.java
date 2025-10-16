@@ -16,7 +16,10 @@ public class Main {
     public static void main(String[] args) {
         scanner = new Scanner(System.in); //  Initialize Scanner
 
-
+// === LOGIN FIRST ===
+         if (!Auth.login(scanner)) {
+            System.out.println("Access denied. Exiting application.");
+            return;}
 
         String choice; // variable declaration
 
