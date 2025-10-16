@@ -96,7 +96,8 @@ public class Main {
                     entry.getVendor(),
                     String.valueOf(entry.getAmount())
             ));
-            writer.newLine(); // Add newline after each entry
+            // Add a newline after each entry
+            writer.newLine();
         } catch (IOException e) {
             System.out.println("Error writing to file: " + e.getMessage());
         }
