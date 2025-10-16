@@ -83,6 +83,24 @@ public class Main {
 
         System.out.println("Deposit saved successfully!");
     }
+// ====== WRITE ENTRY TO CSV FILE ======
+
+     // Saves a transaction entry to the transactions.csv file.
+
+    private static void writeEntry(Transactions entry) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            writer.write(String.join("|",
+                    entry.getDate(),
+                    entry.getTime(),
+                    entry.getDescription(),
+                    entry.getVendor(),
+                    String.valueOf(entry.getAmount())
+            ));
+            writer.newLine(); // Add newline after each entry
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+    }
 
 
 }
