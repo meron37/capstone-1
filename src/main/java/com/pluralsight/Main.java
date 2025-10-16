@@ -9,6 +9,8 @@ import java.util.*;
 public class Main {
     private static final String FILE_PATH = "src/main/resources/transactions.csv"; // accessible, unchangeable and the uppercase is signal to other developers it's constant don’t try to change it
 
+    // String FILE_PATH = "src/main/resources/transactions.csv";
+
     static Scanner scanner; //  Global Scanner
 
     public static void main(String[] args) {
@@ -54,12 +56,158 @@ public class Main {
         System.out.println("X) Exit");
         System.out.print("Enter your choice: ");
     }
-    // ====== ADD DEPOSIT METHOD ======
 
-     // Handles deposit input from the user and saves it to the CSV file.
+    // ======== LEDGER MENU ========
+    private static void showLedgerMenu() {
+        String choice;
 
+        do {
+            System.out.println("\n=== Ledger Menu ===");
+            System.out.println("A) All Entries");
+            System.out.println("D) Deposits Only");
+            System.out.println("P) Payments Only");
+            System.out.println("R) Reports");
+            System.out.println("H) Home");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextLine().trim().toUpperCase();
+
+            switch (choice) {
+                case "A":
+                    showAllEntries();  // since Scanner is global No scanner to pass
+                    break;
+                case "D":
+                    showDeposits();
+                    break;
+                case "P":
+                    showPayments();
+                    break;
+                case "R":
+                    showReportsMenu();
+                    break;
+                case "H":
+                    System.out.println("Returning to Home screen...");
+                    break;
+                default:
+                    System.out.println("Invalid input.");
+            }
+
+        } while (!choice.equals("H"));
+    }
+
+    // ======== REPORTS MENU (Updated with real date filters) ========
+    private static void showReportsMenu() {
+        String choice;
+
+        do {
+            System.out.println("\n=== Reports Menu ===");
+            System.out.println("1) Month to Date");
+            System.out.println("2) Previous Month");
+            System.out.println("3) Year to Date");
+            System.out.println("4) Previous Year");
+            System.out.println("5) Search by Vendor");
+            System.out.println("0) Back to Ledger Menu");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextLine().trim();
+
+            List<Transactions> entries = readEntries(); // list of all transactions
+            Collections.reverse(entries); // newest first
+            LocalDate today = LocalDate.now();
+
+            switch (choice) {
+                case "1": // Month to Date
+                    LocalDate startOfMonth = today.withDayOfMonth(1);
+                    System.out.println("Results from " + startOfMonth + " to " + today);
+                    for (Transactions entry : entries) {
+                        LocalDate txDate = LocalDate.parse(entry.getDate());
+                        if (!txDate.isBefore(startOfMonth) && !txDate.isAfter(today)) {
+                            System.out.println(entry);
+                        }
+                    }
+                    break;
+
+                case "2": // Previous Month
+                    LocalDate firstDayPrevMonth = today.minusMonths(1).withDayOfMonth(1);
+                    LocalDate lastDayPrevMonth = firstDayPrevMonth.withDayOfMonth(firstDayPrevMonth.lengthOfMonth());
+                    System.out.println("Results from " + firstDayPrevMonth + " to " + lastDayPrevMonth);
+                    for (Transactions entry : entries) {
+                        LocalDate txDate = LocalDate.parse(entry.getDate());
+                        if (!txDate.isBefore(firstDayPrevMonth) && !txDate.isAfter(lastDayPrevMonth)) {
+                            System.out.println(entry);
+                        }
+                    }
+                    break;
+
+                case "3": // Year to Date
+                    LocalDate startOfYear = today.withDayOfYear(1);
+                    System.out.println("Results from " + startOfYear + " to " + today);
+                    for (Transactions entry : entries) {
+                        LocalDate txDate = LocalDate.parse(entry.getDate());
+                        if (!txDate.isBefore(startOfYear) && !txDate.isAfter(today)) {
+                            System.out.println(entry);
+                        }
+                    }
+                    break;
+
+                case "4": // Previous Year
+                    LocalDate prevYearStart = LocalDate.of(today.getYear() - 1, 1, 1);
+                    LocalDate prevYearEnd = LocalDate.of(today.getYear() - 1, 12, 31);
+                    System.out.println("Results from " + prevYearStart + " to " + prevYearEnd);
+                    for (Transactions entry : entries) {
+                        LocalDate txDate = LocalDate.parse(entry.getDate());
+                        if (!txDate.isBefore(prevYearStart) && !txDate.isAfter(prevYearEnd)) {
+                            System.out.println(entry);
+                        }
+                    }
+                    break;
+
+                case "5": // Search by Vendor
+                    System.out.print("Enter vendor name: ");
+                    String vendor = scanner.nextLine().trim();
+                    List<Transactions> matches = new ArrayList<>(); // Empty list to store search results
+
+                    for (Transactions entry : entries) {
+                        if (entry.getVendor().equalsIgnoreCase(vendor)) {
+                            matches.add(entry);
+                        }
+                    }
+
+                    if (matches.isEmpty()) {
+                        System.out.println("No transactions found for vendor: " + vendor);
+                    } else {
+                        System.out.println("Results for vendor: " + vendor);
+                        for (Transactions entry : matches) {
+                            System.out.println(entry);
+                        }
+                    }
+                    break;
+
+                case "0":
+                    System.out.println("Returning to Ledger Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid input. Please select from 1–5 or 0.");
+            }
+
+        } while (!choice.equals("0"));
+    }
+
+    // Handles deposit input from the user and saves it to the CSV file
     private static void addDeposit() {
         System.out.println("\n--- Add Deposit ---");
+        Transactions entry = promptTransaction(false); // false = not a payment
+        writeEntry(entry);
+        System.out.println("Deposit saved successfully!");
+    }
+
+    private static void makePayment() {
+        System.out.println("\n--- Make Payment ---");
+        Transactions entry = promptTransaction(true); // true = payment
+        writeEntry(entry);
+        System.out.println("Payment saved successfully!");
+    }
+
+    private static Transactions promptTransaction(boolean isPayment) {
 
         // Prompt user for transaction details
         System.out.print("Enter description: ");
@@ -71,22 +219,16 @@ public class Main {
         System.out.print("Enter amount: ");
         double amount = Double.parseDouble(scanner.nextLine());
 
+        if (isPayment) amount = -Math.abs(amount); // Make sure payments are negative
+
         // Get today's date and current time
         String date = LocalDate.now().toString();
-        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss a")); // a is for AM/PM
 
-        // Create a new transaction with the entered details
-        Transactions entry = new Transactions(date, time, description, vendor, amount);
-
-        // Save the transaction to the CSV file
-        writeEntry(entry);
-
-        System.out.println("Deposit saved successfully!");
+        return new Transactions(date, time, description, vendor, amount);
     }
-// ====== WRITE ENTRY TO CSV FILE ======
 
-     // Saves a transaction entry to the transactions.csv file.
-
+    // Saves a transaction entry to the transactions.csv file.
     private static void writeEntry(Transactions entry) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
             writer.write(String.join("|",
@@ -96,16 +238,17 @@ public class Main {
                     entry.getVendor(),
                     String.valueOf(entry.getAmount())
             ));
-            // Add a newline after each entry
             writer.newLine();
         } catch (IOException e) {
             System.out.println("Error writing to file: " + e.getMessage());
         }
     }
+
     private static List<Transactions> readEntries() {
         List<Transactions> entries = new ArrayList<>();
         File file = new File(FILE_PATH);
         if (!file.exists()) return entries;
+
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -123,5 +266,33 @@ public class Main {
 
         return entries;
     }
+
+    // ======== DISPLAY HELPERS ========
+    private static void showAllEntries() {
+        List<Transactions> entries = readEntries();
+        Collections.reverse(entries);
+        for (Transactions entry : entries) {
+            System.out.println(entry);
+        }
+    }
+
+    private static void showDeposits() {
+        List<Transactions> entries = readEntries();
+        Collections.reverse(entries);
+        for (Transactions entry : entries) {
+            if (entry.getAmount() > 0) {
+                System.out.println(entry);
+            }
+        }
+    }
+
+    private static void showPayments() {
+        List<Transactions> entries = readEntries();
+        Collections.reverse(entries);
+        for (Transactions entry : entries) {
+            if (entry.getAmount() < 0) {
+                System.out.println(entry);
+            }
+        }
     }
 }
