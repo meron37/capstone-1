@@ -10,8 +10,8 @@ import java.util.Scanner;
  */
 public class Auth {
 
-    // Store usernames (or IDs) and their matching passwords
-    private static final Map<String, String> credentials = new HashMap<>();
+    // Store usernames (or IDs) and their matching passwords // String, String(key and value)  => username, id
+    private static final Map<String, String> credentials = new HashMap<>(); // Map is a dictionary stores key values pairs dic
 
     // Static block to initialize valid credentials
     static {

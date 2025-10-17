@@ -192,11 +192,34 @@ public class Main {
                 case "6": // Custom Search
                     System.out.println("\n--- Custom Search ---");
 
-                    System.out.print("Start date (yyyy-MM-dd), or leave blank: ");
-                    String startDateInput = scanner.nextLine().trim();
+                    // === validate dates with do/while so we never crash on bad input ===
+                    String startDateInput;
+                    LocalDate startDate = null;
+                    do {
+                        System.out.print("Start date (yyyy-MM-dd), or leave blank: ");
+                        startDateInput = scanner.nextLine().trim();
+                        if (startDateInput.isEmpty()) break;
+                        try {
+                            startDate = LocalDate.parse(startDateInput);
+                            break; // valid -> exit loop
+                        } catch (Exception e) {
+                            System.out.println("Invalid date. Please use yyyy-MM-dd or leave blank.");
+                        }
+                    } while (true);
 
-                    System.out.print("End date (yyyy-MM-dd), or leave blank: ");
-                    String endDateInput = scanner.nextLine().trim();
+                    String endDateInput;
+                    LocalDate endDate = null;
+                    do {
+                        System.out.print("End date (yyyy-MM-dd), or leave blank: ");
+                        endDateInput = scanner.nextLine().trim();
+                        if (endDateInput.isEmpty()) break;
+                        try {
+                            endDate = LocalDate.parse(endDateInput);
+                            break;
+                        } catch (Exception e) {
+                            System.out.println("Invalid date. Please use yyyy-MM-dd or leave blank.");
+                        }
+                    } while (true);
 
                     System.out.print("Description, or leave blank: ");
                     String descriptionInput = scanner.nextLine().trim();
@@ -204,41 +227,47 @@ public class Main {
                     System.out.print("Vendor, or leave blank: ");
                     String vendorInput = scanner.nextLine().trim();
 
-                    System.out.print("Amount (exact match), or leave blank: ");
-                    String amountInput = scanner.nextLine().trim();
+                    // Amount validation with do/while (blank allowed)
+                    String amountInput;
+                    Double amountFilter = null;
+                    do {
+                        System.out.print("Amount (exact match), or leave blank: ");
+                        amountInput = scanner.nextLine().trim();
+                        if (amountInput.isEmpty()) break;
+                        try {
+                            amountFilter = Double.parseDouble(amountInput);
+                            break;
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid amount. Enter a number or leave blank.");
+                        }
+                    } while (true);
 
                     boolean found = false;
                     for (Transactions entry : entries) {
                         boolean matchesCustom = true;
 
-                        if (!startDateInput.isEmpty()) {
-                            LocalDate startDate = LocalDate.parse(startDateInput);
+                        if (startDate != null) {
                             LocalDate txDate = LocalDate.parse(entry.getDate());
                             if (txDate.isBefore(startDate)) matchesCustom = false;
                         }
 
-                        if (!endDateInput.isEmpty()) {
-                            LocalDate endDate = LocalDate.parse(endDateInput);
+                        if (matchesCustom && endDate != null) {
                             LocalDate txDate = LocalDate.parse(entry.getDate());
                             if (txDate.isAfter(endDate)) matchesCustom = false;
                         }
 
-                        if (!descriptionInput.isEmpty() && !entry.getDescription().equalsIgnoreCase(descriptionInput)) {
+                        if (matchesCustom && !descriptionInput.isEmpty()
+                                && !entry.getDescription().equalsIgnoreCase(descriptionInput)) {
                             matchesCustom = false;
                         }
 
-                        if (!vendorInput.isEmpty() && !entry.getVendor().equalsIgnoreCase(vendorInput)) {
+                        if (matchesCustom && !vendorInput.isEmpty()
+                                && !entry.getVendor().equalsIgnoreCase(vendorInput)) {
                             matchesCustom = false;
                         }
 
-                        if (!amountInput.isEmpty()) {
-                            try {
-                                double amount = Double.parseDouble(amountInput);
-                                if (entry.getAmount() != amount) matchesCustom = false;
-                            } catch (NumberFormatException e) {
-                                System.out.println("Invalid amount input.");
-                                matchesCustom = false;
-                            }
+                        if (matchesCustom && amountFilter != null) {
+                            if (Double.compare(entry.getAmount(), amountFilter) != 0) matchesCustom = false;
                         }
 
                         if (matchesCustom) {
@@ -370,7 +399,7 @@ public class Main {
             }
         }
 
-        deposits.sort(Comparator.comparingDouble(Transactions::getAmount).reversed()); // replaced Collections.sort with List.sort
+        deposits.sort(Comparator.comparingDouble(Transactions::getAmount)); // sort by SMALLEST deposit first (ascending)
 
         for (Transactions deposit : deposits) {
             System.out.println(deposit);
@@ -388,7 +417,7 @@ public class Main {
             }
         }
 
-        payments.sort(Comparator.comparingDouble(Transactions::getAmount)); // replaced Collections.sort with List.sort
+        payments.sort(Comparator.comparingDouble(Transactions::getAmount)); // most negative first
 
         for (Transactions payment : payments) {
             System.out.println(payment);
