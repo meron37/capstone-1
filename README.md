@@ -79,4 +79,12 @@ String username = scanner.nextLine().trim();
     }
 }
 
+
+
 ```
+
+
+# What i have learned 
+- I learned how to use classes and objects to organize my code, including creating an Auth class with a static block to store and initialize user credentials. I also gained a better understanding of file handling, sorting with List.sort(), and validating user input using try/catch and do/while loops to make the program more reliable.
+# Challenge I had 
+I was struggling comparing and filtering transactions by date using LocalDate.parse() and matching the correct yyyy-MM-dd format for the reports. I requested a tutoring session, and she helped me understand date parsing and safe input handling with try/catch. Dave also helped me improve my amount-handling logic using a do/while loop to validate numeric input and prevent invalid entries.

@@ -406,7 +406,7 @@ public class Main {
         }
     }
 
-    // // Displays only payment (negative amount) transactions from the CSV file
+     // Displays only payment (negative amount) transactions from the CSV file
     private static void showPayments() {
         List<Transactions> entries = readEntries();
         List<Transactions> payments = new ArrayList<>();
