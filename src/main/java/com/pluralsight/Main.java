@@ -16,10 +16,11 @@ public class Main {
     public static void main(String[] args) {
         scanner = new Scanner(System.in); //  Initialize Scanner
 
-// === LOGIN FIRST ===
-         if (!Auth.login(scanner)) {
+        // === LOGIN FIRST ===
+        if (!Auth.login(scanner)) {
             System.out.println("Access denied. Exiting application.");
-            return;}
+            return;
+        }
 
         String choice; // variable declaration
 
@@ -111,6 +112,7 @@ public class Main {
             System.out.println("3) Year to Date");
             System.out.println("4) Previous Year");
             System.out.println("5) Search by Vendor");
+            System.out.println("6) Custom Search"); // Bonus
             System.out.println("0) Back to Ledger Menu");
             System.out.print("Enter your choice: ");
             choice = scanner.nextLine().trim();
@@ -187,12 +189,75 @@ public class Main {
                     }
                     break;
 
+                case "6": // Custom Search
+                    System.out.println("\n--- Custom Search ---");
+
+                    System.out.print("Start date (yyyy-MM-dd), or leave blank: ");
+                    String startDateInput = scanner.nextLine().trim();
+
+                    System.out.print("End date (yyyy-MM-dd), or leave blank: ");
+                    String endDateInput = scanner.nextLine().trim();
+
+                    System.out.print("Description, or leave blank: ");
+                    String descriptionInput = scanner.nextLine().trim();
+
+                    System.out.print("Vendor, or leave blank: ");
+                    String vendorInput = scanner.nextLine().trim();
+
+                    System.out.print("Amount (exact match), or leave blank: ");
+                    String amountInput = scanner.nextLine().trim();
+
+                    boolean found = false;
+                    for (Transactions entry : entries) {
+                        boolean matchesCustom = true;
+
+                        if (!startDateInput.isEmpty()) {
+                            LocalDate startDate = LocalDate.parse(startDateInput);
+                            LocalDate txDate = LocalDate.parse(entry.getDate());
+                            if (txDate.isBefore(startDate)) matchesCustom = false;
+                        }
+
+                        if (!endDateInput.isEmpty()) {
+                            LocalDate endDate = LocalDate.parse(endDateInput);
+                            LocalDate txDate = LocalDate.parse(entry.getDate());
+                            if (txDate.isAfter(endDate)) matchesCustom = false;
+                        }
+
+                        if (!descriptionInput.isEmpty() && !entry.getDescription().equalsIgnoreCase(descriptionInput)) {
+                            matchesCustom = false;
+                        }
+
+                        if (!vendorInput.isEmpty() && !entry.getVendor().equalsIgnoreCase(vendorInput)) {
+                            matchesCustom = false;
+                        }
+
+                        if (!amountInput.isEmpty()) {
+                            try {
+                                double amount = Double.parseDouble(amountInput);
+                                if (entry.getAmount() != amount) matchesCustom = false;
+                            } catch (NumberFormatException e) {
+                                System.out.println("Invalid amount input.");
+                                matchesCustom = false;
+                            }
+                        }
+
+                        if (matchesCustom) {
+                            System.out.println(entry);
+                            found = true;
+                        }
+                    }
+
+                    if (!found) {
+                        System.out.println("No results found for your search.");
+                    }
+                    break;
+
                 case "0":
                     System.out.println("Returning to Ledger Menu...");
                     break;
 
                 default:
-                    System.out.println("Invalid input. Please select from 1–5 or 0.");
+                    System.out.println("Invalid input. Please select from 1–6 or 0.");
             }
 
         } while (!choice.equals("0"));
@@ -227,12 +292,12 @@ public class Main {
         do {
             try {
                 System.out.print("Enter amount: ");
-                 amount = Double.parseDouble(scanner.nextLine());
-                gotNumber= true;
+                amount = Double.parseDouble(scanner.nextLine());
+                gotNumber = true;
             } catch (NumberFormatException e) {
                 System.out.println("Input Error: Invalid number for amount.");
             }
-        } while(!gotNumber);
+        } while (!gotNumber);
 
         if (isPayment) amount = -Math.abs(amount); // Make sure payments are negative
 
@@ -260,8 +325,8 @@ public class Main {
     }
 
     /* reading from the file, creating a Transactions object (entry), and then adding each entry to an ArrayList
-     so we can later display or filter
-           */
+       so we can later display or filter
+    */
     private static List<Transactions> readEntries() {
         List<Transactions> entries = new ArrayList<>();
         File file = new File(FILE_PATH);
@@ -270,7 +335,7 @@ public class Main {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("\\|"); // \\ escape character - becasue java needs "\" to be writeen as \\
+                String[] parts = line.split("\\|"); // \\ escape character - because java needs "\" to be writeen as \\
                 if (parts.length == 5) {
                     Transactions entry = new Transactions(
                             parts[0], parts[1], parts[2], parts[3], Double.parseDouble(parts[4])
@@ -288,7 +353,7 @@ public class Main {
     // Displays all transactions from the CSV file in reverse // like stack last in fist out
     private static void showAllEntries() {
         List<Transactions> entries = readEntries(); // calling redEntries method all transactions are stored in Arraylist "entries"
-        Collections.reverse(entries); // the newest transactions come first
+        entries.sort(Comparator.comparing(Transactions::getDate).reversed()); // replaced Collections.sort with List.sort :: is Method reference
         for (Transactions entry : entries) {
             System.out.println(entry);
         }
@@ -297,22 +362,36 @@ public class Main {
     // Displays only deposit (positive amount) transactions from the file
     private static void showDeposits() {
         List<Transactions> entries = readEntries();
-        Collections.reverse(entries);
+        List<Transactions> deposits = new ArrayList<>();
+
         for (Transactions entry : entries) { // : mean "in"  // For each entry in entries
             if (entry.getAmount() > 0) {
-                System.out.println(entry);
+                deposits.add(entry);
             }
+        }
+
+        deposits.sort(Comparator.comparingDouble(Transactions::getAmount).reversed()); // replaced Collections.sort with List.sort
+
+        for (Transactions deposit : deposits) {
+            System.out.println(deposit);
         }
     }
 
     // // Displays only payment (negative amount) transactions from the CSV file
     private static void showPayments() {
         List<Transactions> entries = readEntries();
-        Collections.reverse(entries);
+        List<Transactions> payments = new ArrayList<>();
+
         for (Transactions entry : entries) {
             if (entry.getAmount() < 0) {
-                System.out.println(entry);
+                payments.add(entry);
             }
+        }
+
+        payments.sort(Comparator.comparingDouble(Transactions::getAmount)); // replaced Collections.sort with List.sort
+
+        for (Transactions payment : payments) {
+            System.out.println(payment);
         }
     }
 }
